@@ -1,6 +1,6 @@
 import { cli } from 'cleye';
 import { version } from '../package.json';
-import { run } from './run';
+import { isBinaryPath, runBinary } from './run-binary';
 import { watchCommand } from './watch';
 
 cli({
@@ -25,7 +25,10 @@ cli({
 		},
 	},
 	help: false,
-}, (argv) => {
+}, async (argv) => {
+	let binaryPath = process.execPath;
+	let args = process.argv.slice(2);
+
 	if (argv._.length === 0) {
 		if (argv.flags.version) {
 			console.log(version);
@@ -40,16 +43,34 @@ cli({
 		}
 
 		// Load REPL
-		process.argv.push(require.resolve('./repl'));
+		args.push(require.resolve('./repl'));
 	}
 
-	const args = process.argv.slice(2).filter(
-		argument => (argument !== '--no-cache' && argument !== '--noCache'),
-	);
+	const [scriptPath] = argv._;
+	const foundBinary = await isBinaryPath(scriptPath);
 
-	run(args, {
-		noCache: Boolean(argv.flags.noCache),
-	}).on(
+	if (foundBinary) {
+		binaryPath = foundBinary;
+
+		const scriptIndex = args.indexOf(scriptPath);
+		if (scriptIndex > -1) {
+			args.splice(scriptIndex, 1);
+		}
+	}
+
+	if (argv.flags.noCache) {
+		args = args.filter(
+			argument => (argument !== '--no-cache' && argument !== '--noCache'),
+		);
+	}
+
+	runBinary(
+		binaryPath,
+		args,
+		{
+			noCache: Boolean(argv.flags.noCache),
+		},
+	).on(
 		'close',
 		code => process.exit(code!),
 	);

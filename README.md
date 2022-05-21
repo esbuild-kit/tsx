@@ -58,6 +58,11 @@ Pass in a file to run:
 tsx ./file.ts
 ```
 
+You can also run a local binary (binaries in `./node_modules/.bin/`):
+```sh
+tsx binary-name
+```
+
 ### Watch mode
 Run file and automatically re-run on changes.
 

@@ -19,6 +19,7 @@ export const tsx = (
 	options.args,
 	{
 		env: {
+			NODE_OPTIONS: '',
 			ESBK_DISABLE_CACHE: '1',
 		},
 		nodePath: options.nodePath,
@@ -36,6 +37,7 @@ export async function createNode(
 
 	return {
 		version: node.version,
+		path: node.path,
 		packageType: '',
 		get isCJS() {
 			return this.packageType === 'commonjs';
